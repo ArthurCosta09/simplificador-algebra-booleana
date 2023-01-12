@@ -1,57 +1,44 @@
 import 'package:flutter/material.dart';
 import "dart:math";
 import "kMap_pos.dart";
-import "simplifier.dart";
 
 List kMap(Map truthTable, Map inputs) {
-  List inputLetter = inputs.keys.toList();
-  var keyList = truthTable.keys.toList();
-  int inpSize = keyList.length.toInt();
-  int keySize = keyList[0].toString().length;
-  int delimeter =
-      (keySize % 2 == 0) ? (keySize ~/ 2) : ((keySize ~/ 2).round());
+  List kMap = [];
+  int fillOneCounter = 0;
+  List tableKeys = truthTable.keys.toList();
+  List inps = inputs.keys.toList();
+  int keySize = tableKeys[0].length;
+  int delimeter = keySize ~/ 2;
 
   List<String> rowInputs = [];
   List<String> colInputs = [];
 
-  int colSize =
-      pow(2, keyList[0].toString().substring(0, delimeter).length).toInt();
-  colSize = (keySize % 2 == 0) ? colSize : 2 * colSize;
-  for (int i = 0; i < inpSize; i = i + colSize) {
-    var col = truthTable.keys.toList()[i].toString().substring(0, delimeter);
-    colInputs.add(col);
+  for (String key in tableKeys) {
+    colInputs.add(key.substring(0, delimeter));
+    rowInputs.add(key.substring(delimeter, keySize));
   }
 
-  int rowSize =
-      pow(2, keyList[0].toString().substring(delimeter, keySize).length)
-          .toInt();
-  for (int i = 0; i < colSize; i++) {
-    var row =
-        truthTable.keys.toList()[i].toString().substring(delimeter, keySize);
-    rowInputs.add(row);
-  }
-
+  rowInputs = rowInputs.toSet().toList();
+  colInputs = colInputs.toSet().toList();
   rowInputs = kMapPos(rowInputs);
   colInputs = kMapPos(colInputs);
 
   print(rowInputs);
   print(colInputs);
 
-  List<List> kMap = [];
   for (int i = 0; i < rowInputs.length; i++) {
     List row = [];
     for (int j = 0; j < colInputs.length; j++) {
-      var key = rowInputs[i] + colInputs[j];
-      row.add(truthTable[key]);
+      var tableKey = rowInputs[i] + colInputs[j];
+      row.add(int.parse(truthTable[tableKey]));
+    }
+    if (row.every((number) => number == 1)) {
+      fillOneCounter++;
     }
     kMap.add(row);
   }
 
-  List<List> inps = [];
-  inps.add(inputLetter.sublist(0, delimeter));
-  inps.add(inputLetter.sublist(delimeter));
+  if (fillOneCounter >= rowInputs.length) kMap.clear();
 
-  String answer = simplifier(kMap, rowInputs, colInputs, inps);
-
-  return kMap;
+  return [kMap, rowInputs, colInputs];
 }

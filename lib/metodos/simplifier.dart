@@ -1,367 +1,526 @@
 import 'package:flutter/material.dart';
 import "simple_eq.dart";
 
-const TRUEBIN = "1";
-String simplifier(List<List> kMap, List<String> rowInputs,
-    List<String> colInputs, List<List> inps) {
-  Map trueRows = _trueVars(rowInputs, kMap);
-  Map trueColumns = _trueVars(colInputs, _kMapColumn(kMap));
-
-  if (trueRows.isEmpty || trueColumns.isEmpty) {
-    return TRUEBIN;
+String simplifier(
+    List kMap, List<String> inputs, List rowInputs, List colInputs) {
+  if (kMap.isEmpty) {
+    return "1";
   }
 
-  print(trueRows);
-  print(trueColumns);
-
-  return "";
-}
-
-String _solver(Map trueRows, Map trueColumns, List<String> rowInputs,
-    List<String> colInputs, List<List> inps) {
   List output = [];
-  List rows = [];
-  List columns = [];
-  var rowKeys = trueRows.keys.toList();
-  var columnKeys = trueColumns.keys.toList();
-  if (columnKeys.length == 1 && rowKeys.length >= rowInputs.length) {
-    columns.add(colInputs[columnKeys[0]]);
-    if (rowKeys.length >= rowInputs.length) {
-      output.add(simpleEq(inputs: inps[1], columns: columns));
-    } else {
-      trueColumns[columnKeys[0]].forEach((row) {
-        rows.add(rowInputs[row]);
-      });
-      output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
+  if (inputs.length == 2) {
+    List inpRow = inputs.sublist(0, 1);
+    List inpCol = inputs.sublist(1);
+    for (int i = 0; i < 2; i++) {
+      List row = kMap[i];
+      if (!row.any((element) => element == 1)) continue;
+      for (int j = 0; j < 2; j++) {
+        if (row.every((element) => element == 1) && j == 0) {
+          output.add(simpleEq(
+              inputs: [inpRow, inpCol],
+              columns: [colInputs[0], colInputs[1]],
+              rows: [rowInputs[i]]));
+        }
+        if (i == 0) {
+          if (row[j] == 1 && kMap[1][j] == 1) {
+            output.add(simpleEq(
+                inputs: [inpRow, inpCol],
+                rows: [rowInputs[0], rowInputs[1]],
+                columns: [colInputs[j]]));
+          }
+          if (row[j] == 1 &&
+              kMap[1][j] != 1 &&
+              !row.every((element) => element == 1)) {
+            output.add(simpleEq(
+                inputs: [inpRow, inpCol],
+                rows: [rowInputs[i]],
+                columns: [colInputs[j]]));
+          }
+        } else if (i == 1 && !row.every((element) => element == 1)) {
+          if (row[j] == 1 && kMap[0][j] != 1) {
+            output.add(simpleEq(
+                inputs: [inpRow, inpCol],
+                rows: [rowInputs[i]],
+                columns: [colInputs[j]]));
+          }
+        }
+      }
     }
-  } else if (rowKeys.length == 1 && columnKeys.length >= colInputs.length) {
-    rows.add(rowInputs[rowKeys[0]]);
-    if (columnKeys.length >= colInputs.length) {
-      output.add(simpleEq(inputs: inps[0], rows: rows));
-    } else {
-      trueRows[rowKeys[0]].forEach((column) {
-        columns.add(colInputs[column]);
-      });
-      output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
+  } else if (inputs.length == 3) {
+    bool verticalChecker = false;
+    List inpRow = inputs.sublist(0, 2);
+    List inpCol = inputs.sublist(2);
+
+    for (int i = 0; i < rowInputs.length; i++) {
+      List row = kMap[i];
+      if (!row.any((element) => element == 1)) {
+        continue;
+      }
+      for (int j = 0; j < colInputs.length; j++) {
+        if (i == 0) {
+          if (row.every((element) => element == 1) && j == 0) {
+            if (kMap[3].every((element) => element == 1)) {
+              output.add(simpleEq(
+                  inputs: [inpRow, inpCol],
+                  rows: [rowInputs[0], rowInputs[3]],
+                  columns: [colInputs[0], colInputs[1]]));
+            }
+            if (kMap[1].every((element) => element == 1)) {
+              output.add(simpleEq(
+                  inputs: [inpRow, inpCol],
+                  rows: [rowInputs[0], rowInputs[1]],
+                  columns: [colInputs[0], colInputs[1]]));
+            } else if (!kMap[1].every((element) => element == 1) &&
+                !kMap[3].every((element) => element == 1)) {
+              output.add(simpleEq(
+                  inputs: [inpRow, inpCol],
+                  rows: [rowInputs[0]],
+                  columns: [colInputs[0], colInputs[1]]));
+            }
+          }
+          if (row[j] == 1) {
+            if (kMap[0][j] == 1 &&
+                kMap[1][j] == 1 &&
+                kMap[2][j] != 1 &&
+                kMap[3][j] != 1 &&
+                !kMap[1].every((element) => element == 1)) {
+              output.add(simpleEq(
+                  inputs: [inpRow, inpCol],
+                  columns: [colInputs[j]],
+                  rows: [rowInputs[0], rowInputs[1]]));
+            } else if (kMap[0][j] == 1 &&
+                kMap[1][j] == 1 &&
+                kMap[2][j] == 1 &&
+                kMap[3][j] == 1) {
+              verticalChecker = true;
+              output.add(simpleEq(inputs: inpCol, columns: [colInputs[j]]));
+            } else if (kMap[0][j] == 1 &&
+                kMap[1][j] != 1 &&
+                kMap[2][j] != 1 &&
+                kMap[3][j] == 1 &&
+                (!kMap[3].every((element) => element == 1) ||
+                    !row.every((element) => element == 1))) {
+              output.add(simpleEq(
+                  inputs: [inpRow, inpCol],
+                  columns: [colInputs[j]],
+                  rows: [rowInputs[0], rowInputs[3]]));
+            }
+          }
+        } else if (i == 1 || i == 2) {
+          bool isFull = row.every((element) => element == 1);
+          if (isFull && j == 0) {
+            if (kMap[i + 1].every((element) => element == 1)) {
+              output.add(simpleEq(
+                  inputs: [inpRow, inpCol],
+                  columns: [colInputs[0], colInputs[1]],
+                  rows: [rowInputs[i], rowInputs[i + 1]]));
+            } else if (!kMap[i - 1].every((element) => element == 1) &&
+                !kMap[i + 1].every((element) => element == 1)) {
+              output.add(simpleEq(
+                  inputs: [inpRow, inpCol],
+                  columns: [colInputs[0], colInputs[1]],
+                  rows: [rowInputs[i]]));
+            }
+          }
+          bool checker = kMap[i + 1].every((element) => element == 1);
+          if (row[j] == 1) {
+            if (kMap[i + 1][j] == 1 &&
+                (!checker || !isFull) &&
+                !verticalChecker) {
+              output.add(simpleEq(
+                  inputs: [inpRow, inpCol],
+                  columns: [colInputs[j]],
+                  rows: [rowInputs[i], rowInputs[i + 1]]));
+            }
+          }
+        } else {
+          if (row.every((element) => element == 1) && j == 0) {
+            if (!kMap[2].every((element) => element == 1) &&
+                !kMap[0].every((element) => element == 1)) {
+              output.add(simpleEq(
+                  inputs: [inpRow, inpCol],
+                  columns: [colInputs[0], colInputs[1]],
+                  rows: [rowInputs[3]]));
+            }
+          }
+        }
+      }
     }
   } else {
-    final columnList = trueRows.values.toList();
-    final commomColumn =
-        columnList.fold<Set>(columnList.first, (a, b) => a.intersection(b));
-    final rowList = trueColumns.values.toList();
-    final commonRow =
-        rowList.fold<Set>(rowList.first, (a, b) => a.intersection(b));
-    if (rowKeys.length >= rowInputs.length && colInputs.length <= 2) {
-      if (commomColumn.isEmpty && commonRow.isNotEmpty) {
-        columns = [for (int i in columnKeys) colInputs[i]];
-        rows = [for (int i in commonRow) rowInputs[i]];
-        output.add(simpleEq(inputs: inps, rows: rows, columns: columns));
-        trueColumns.forEach((column, row) {
-          row = row.toList();
-          if (row.length > colInputs.length) {
-            if (row.contains(0) && row.contains(3)) {
-              List subRow;
-              if (row[1] == 2) {
-                subRow = row.sublist(1, 3);
-              } else {
-                subRow = row.sublist(0, 2);
-              }
-              output.add(simpleEq(
-                  inputs: inps,
-                  columns: [colInputs[column]],
-                  rows: [rowInputs[0], rowInputs[2]]));
-              output.add(simpleEq(
-                  inputs: inps,
-                  columns: [colInputs[column]],
-                  rows: [for (int i in subRow) rowInputs[i]]));
-            } else {
-              for (int i = 0; i < row.length - 1; i++) {
-                int next = row[i] + 1;
-                if (row[i + 1] == next) {
-                  List r = row.toList().sublist(i, i + 2);
+    List vertChecker = [];
+    List horChecker = [];
+    kMap.forEach((row) {
+      if (row.every((element) => element == 1)) {
+        horChecker.add(true);
+      } else {
+        horChecker.add(false);
+      }
+    });
+    kMap[0].asMap().forEach((index, element) {
+      if (kMap[0][index] == 1 &&
+          kMap[1][index] == 1 &&
+          kMap[2][index] == 1 &&
+          kMap[3][index] == 1) {
+        vertChecker.add(true);
+      } else {
+        vertChecker.add(false);
+      }
+    });
+    print(horChecker);
+    print(vertChecker);
+    List<String> inpRow = inputs.sublist(0, 2);
+    List<String> inpCol = inputs.sublist(2);
+    for (int i = 0; i < rowInputs.length; i++) {
+      List row = kMap[i];
+      if (!row.any((element) => element == 1)) continue;
+      for (int j = 0; j < colInputs.length; j++) {
+        if (i == 0) {
+          if (horChecker[i] && j == 0) {
+            if (horChecker[3]) {
+              output.add(
+                  simpleEq(inputs: inpRow, rows: [rowInputs[0], rowInputs[3]]));
+            }
+            if (horChecker[1]) {
+              output.add(
+                  simpleEq(inputs: inpRow, rows: [rowInputs[0], rowInputs[1]]));
+            }
+            if (!horChecker[1] && !horChecker[3]) {
+              output.add(simpleEq(inputs: inpRow, rows: [rowInputs[0]]));
+            }
+          }
+          if (row[j] == 1) {
+            if (j == 0) {
+              if (vertChecker[j]) {
+                vertChecker[0] = true;
+                if (vertChecker[3]) {
                   output.add(simpleEq(
-                      inputs: inps,
-                      columns: [colInputs[column]],
-                      rows: [for (int j in r) rowInputs[j]]));
+                      inputs: inpCol, columns: [colInputs[0], colInputs[3]]));
+                }
+                if (vertChecker[1]) {
+                  output.add(simpleEq(
+                      inputs: inpCol, columns: [colInputs[0], colInputs[1]]));
+                }
+                if (!vertChecker[1] && !vertChecker[3]) {
+                  output.add(simpleEq(inputs: inpCol, columns: [colInputs[0]]));
                 }
               }
-            }
-          } else {
-            output.add(simpleEq(
-                inputs: inps,
-                columns: [colInputs[column]],
-                rows: [for (int j in row) rowInputs[j]]));
-          }
-        });
-      } else if (commomColumn.isEmpty && commonRow.isEmpty) {
-        trueColumns.forEach((column, row) {
-          output.add(simpleEq(
-              inputs: inps,
-              rows: [for (int i in rows) rowInputs[i]],
-              columns: [colInputs[column]]));
-        });
-      } else {
-        columns = [for (int i in commomColumn) colInputs[i]];
-        output.add(simpleEq(inputs: inps[1], columns: columns));
-
-        columns = [for (int i in columnKeys) colInputs[i]];
-        if (commonRow.length > colInputs.length) {
-          if (commonRow.contains(0) &&
-              commonRow.contains(trueRows.length - 1)) {
-            List subRow = [];
-            if (commonRow.elementAt(1) == 2) {
-              subRow = commonRow.toList().sublist(1, commonRow.length);
-            } else {
-              subRow = commonRow.toList().sublist(0, commonRow.length - 1);
-            }
-            output.add(simpleEq(
-                inputs: inps,
-                columns: columns,
-                rows: [for (int i in subRow) rowInputs[i]]));
-            output.add(simpleEq(inputs: inps, columns: columns, rows: [
-              for (int i in [0, trueRows.length - 1]) rowInputs[i]
-            ]));
-          } else {
-            for (int i = 0; i < commonRow.length - 1; i++) {
-              List subRow = [
-                rowInputs[commonRow.elementAt(i)],
-                rowInputs[commonRow.elementAt(i + 1)]
-              ];
-              output
-                  .add(simpleEq(inputs: inps, columns: columns, rows: subRow));
-            }
-          }
-        } else {
-          output.add(simpleEq(
-              inputs: inps,
-              columns: columns,
-              rows: [for (int i in commonRow) rowInputs[i]]));
-        }
-      }
-    } else if (rowKeys.length < rowInputs.length && colInputs.length <= 2) {
-      if (columnKeys.length < colInputs.length) {
-        columns = [for (int i in columnKeys) colInputs[i]];
-        rows = [
-          for (int i in columnKeys)
-            for (int j in trueColumns[i]) rowInputs[j]
-        ];
-        output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
-      } else if (rowKeys.length == 1) {
-        columns = [for (int i in trueRows[rowKeys[0]]) colInputs[i]];
-        rows = [rowInputs[rowKeys[0]]];
-        output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
-      } else {
-        if (commomColumn.isEmpty && commonRow.isNotEmpty) {
-          columns = [for (int i in columnKeys) colInputs[i]];
-          rows = [for (int i in commonRow) rowInputs[i]];
-          output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
-          columns.clear();
-          rows.clear();
-          trueColumns.forEach((column, row) {
-            columns = [colInputs[column]];
-            if (row.length > colInputs.length) {
-              for (int i = 0; i < row.length - 1; i++) {
-                List subRow = row.toList().sublist(i, i + 2);
-                rows = [for (int j in subRow) rowInputs[j]];
-                output
-                    .add(simpleEq(inputs: inps, columns: columns, rows: rows));
+              if (kMap[1][j] == 1 && kMap[2][j] != 1 && kMap[3][j] != 1) {
+                if (kMap[0][3] == 1 &&
+                    kMap[1][3] == 1 &&
+                    kMap[2][3] != 1 &&
+                    kMap[3][3] != 1 &&
+                    (!horChecker[0] || !horChecker[1]) &&
+                    (!vertChecker[0] || !vertChecker[3])) {
+                  output.add(simpleEq(
+                      inputs: [inpRow, inpCol],
+                      columns: [colInputs[0], colInputs[3]],
+                      rows: [rowInputs[0], rowInputs[1]]));
+                }
+                if ((!horChecker[0] || !horChecker[1]) &&
+                    (kMap[0][3] != 1 || kMap[1][3] != 1) &&
+                    (kMap[0][1] != 1 || kMap[1][1] != 1)) {
+                  output.add(simpleEq(
+                      inputs: [inpRow, inpCol],
+                      columns: [colInputs[0]],
+                      rows: [rowInputs[0], rowInputs[1]]));
+                }
+              }
+              if (kMap[0][0] == 1 &&
+                  kMap[0][1] == 1 &&
+                  kMap[1][0] == 1 &&
+                  kMap[1][1] == 1 &&
+                  (!horChecker[0] || !horChecker[1])) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    columns: [colInputs[0], colInputs[1]],
+                    rows: [rowInputs[0], rowInputs[1]]));
+              }
+              if (kMap[0][0] == 1 &&
+                  kMap[3][0] == 1 &&
+                  !vertChecker[0] &&
+                  (!horChecker[0] || !horChecker[3])) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    columns: [colInputs[0]],
+                    rows: [rowInputs[0], rowInputs[3]]));
+              }
+              if (kMap[0][0] == 1 &&
+                  kMap[0][1] == 1 &&
+                  kMap[3][0] == 1 &&
+                  kMap[3][1] == 1 &&
+                  (!vertChecker[0] || !vertChecker[1]) &&
+                  (!horChecker[0] || !horChecker[3])) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    columns: [colInputs[0], colInputs[1]],
+                    rows: [rowInputs[0], rowInputs[3]]));
+              }
+              if (kMap[0][0] == 1 &&
+                  kMap[0][3] == 1 &&
+                  (kMap[1][0] != 1 || kMap[1][3] != 1) &&
+                  !horChecker[0] &&
+                  (!vertChecker[0] || !vertChecker[3])) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    columns: [colInputs[0], colInputs[3]],
+                    rows: [rowInputs[0]]));
+              }
+              if (kMap[0][0] == 1 &&
+                  kMap[1][0] == 1 &&
+                  kMap[0][3] == 1 &&
+                  kMap[1][3] == 1 &&
+                  (!horChecker[0] || !horChecker[1]) &&
+                  (!vertChecker[0] || !vertChecker[3])) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    columns: [colInputs[0], colInputs[3]],
+                    rows: [rowInputs[0], rowInputs[1]]));
+              }
+            } else if (j == 1 || j == 2) {
+              if (kMap[0][j] == 1 &&
+                  kMap[1][j] == 1 &&
+                  kMap[2][j] == 1 &&
+                  kMap[3][j] == 1) {
+                vertChecker[j] = true;
+                if (kMap[0][j + 1] == 1 &&
+                    kMap[1][j + 1] == 1 &&
+                    kMap[2][j + 1] == 1 &&
+                    kMap[3][j + 1] == 1) {
+                  vertChecker[j + 1] =
+                      (vertChecker[j + 1]) ? vertChecker[j + 1] : true;
+                  output.add(simpleEq(
+                      inputs: inpCol,
+                      columns: [colInputs[j], colInputs[j + 1]]));
+                }
+                if (!vertChecker[j - 1] && !vertChecker[j + 1]) {
+                  output.add(simpleEq(inputs: inpCol, columns: [colInputs[j]]));
+                }
+              }
+              if (kMap[0][j] == 1 &&
+                  kMap[0][j + 1] == 1 &&
+                  kMap[3][j] == 1 &&
+                  kMap[3][j + 1] == 1 &&
+                  (!horChecker[0] || !horChecker[3]) &&
+                  (!vertChecker[j] || !vertChecker[j + 1])) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    rows: [rowInputs[0], rowInputs[3]],
+                    columns: [colInputs[j], colInputs[j + 1]]));
+              }
+              if (kMap[0][j] == 1 &&
+                  kMap[0][j + 1] == 1 &&
+                  kMap[1][j] == 1 &&
+                  kMap[1][j + 1] == 1 &&
+                  (!horChecker[0] || !horChecker[1]) &&
+                  (!vertChecker[j] || !vertChecker[j + 1])) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    rows: [rowInputs[0], rowInputs[1]],
+                    columns: [colInputs[j], colInputs[j + 1]]));
+              }
+              if (kMap[0][j] == 1 &&
+                  kMap[0][j + 1] == 1 &&
+                  kMap[1][j] != 1 &&
+                  kMap[1][j + 1] != 1 &&
+                  kMap[3][j] != 1 &&
+                  kMap[3][j + 1] != 1 &&
+                  !horChecker[0] &&
+                  (!vertChecker[j] || !vertChecker[j + 1])) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    rows: [rowInputs[0]],
+                    columns: [colInputs[j], colInputs[j + 1]]));
+              }
+              if (kMap[0][j] == 1 &&
+                  kMap[1][j] == 1 &&
+                  (kMap[0][j + 1] != 1 || kMap[1][j + 1] != 1) &&
+                  (kMap[0][j - 1] != 1 || kMap[1][j - 1] != 1) &&
+                  (!horChecker[0] || !horChecker[1])) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    rows: [rowInputs[0], rowInputs[1]],
+                    columns: [colInputs[j]]));
+              }
+              if (kMap[0][j] == 1 &&
+                  kMap[3][j] == 1 &&
+                  !vertChecker[j] &&
+                  (!horChecker[0] || !horChecker[3])) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    rows: [rowInputs[0], rowInputs[3]],
+                    columns: [colInputs[j]]));
               }
             } else {
-              rows = [for (int i in row) rowInputs[i]];
-              output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
-            }
-          });
-        } else if (commomColumn.isNotEmpty &&
-            commonRow.isNotEmpty &&
-            rowKeys.length <= 2) {
-          bool isSepareted = false;
-          for (int i = 0; i < rowKeys.length - 1; i++) {
-            int next = rowKeys[i] + 1;
-            if (rowKeys[i + 1] != next) {
-              isSepareted = true;
-              break;
-            }
-          }
-          bool is_03 = rowKeys.contains(0) && rowKeys.contains(3);
-          if (isSepareted && !is_03) {
-            trueRows.forEach((row, column) {
-              rows = [rowInputs[row]];
-              columns = [for (int i in column) colInputs[column]];
-              output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
-            });
-          } else {
-            rows = [for (int i in rowKeys) rowInputs[i]];
-            columns = [for (int i in commomColumn) colInputs[i]];
-            output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
-          }
-        } else if (commomColumn.isNotEmpty &&
-            commonRow.isNotEmpty &&
-            rowKeys.length > 2) {
-          columns = [for (int i in columnKeys) colInputs[i]];
-          rows = [for (int i in commonRow) rowInputs[i]];
-          output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
-          if (rowKeys.contains(0) && rowKeys.contains(3)) {
-            List subRow = (rowKeys[1] == 2)
-                ? rowKeys.sublist(1, rowKeys.length)
-                : rowKeys.sublist(0, 2);
-            rows = [for (int i in subRow) rowInputs[i]];
-            columns = [for (int i in commomColumn) colInputs[i]];
-            output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
-            output.add(simpleEq(
-                inputs: inps,
-                columns: columns,
-                rows: [rowInputs[0], rowInputs[3]]));
-          } else {
-            for (int i = 0; i < rowKeys.length - 1; i++) {
-              List subRow = rowKeys.sublist(i, i + 2);
-              rows = [for (int i in subRow) rowInputs[i]];
-              columns = [for (int i in commomColumn) colInputs[i]];
-              output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
+              if (kMap[0][3] == 1 &&
+                  kMap[1][3] == 1 &&
+                  kMap[2][3] == 1 &&
+                  kMap[3][3] == 1 &&
+                  !vertChecker[0] &&
+                  !vertChecker[2]) {
+                vertChecker[3] = true;
+                output.add(simpleEq(inputs: inpCol, columns: [colInputs[3]]));
+              }
+              if (kMap[0][3] == 1 &&
+                  kMap[1][3] == 1 &&
+                  !vertChecker[3] &&
+                  (kMap[0][2] != 1 || kMap[1][2] != 1) &&
+                  (kMap[0][0] != 1 || kMap[1][0] != 1) &&
+                  (!horChecker[0] || !horChecker[1])) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    rows: [rowInputs[0], rowInputs[1]],
+                    columns: [colInputs[3]]));
+              }
+              if (kMap[0][3] == 1 &&
+                  kMap[3][3] == 1 &&
+                  (!horChecker[0] || !horChecker[3]) &&
+                  !vertChecker[3]) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    columns: [colInputs[3]],
+                    rows: [rowInputs[0], rowInputs[3]]));
+              }
             }
           }
-        }
-      }
-    } else if (rowKeys.length >= rowInputs.length &&
-        colInputs.length > 2 &&
-        columnKeys.length >= colInputs.length) {
-      rows = [for (int i in rowKeys) rowInputs[i]];
-
-      if (commomColumn.length > 2) {
-        if (commomColumn.contains(0) && commomColumn.contains(3)) {
-          List subColumn = (commomColumn.elementAt(1) == 2)
-              ? commomColumn.toList().sublist(1, 3)
-              : commomColumn.toList().sublist(0, 2);
-          output.add(simpleEq(
-              inputs: inps,
-              columns: [for (int i in subColumn) colInputs[i]],
-              rows: rows));
-          output.add(simpleEq(
-              inputs: inps, columns: [colInputs[0], colInputs[3]], rows: rows));
+        } else if (i == 1 || i == 2) {
+          if (row.every((element) => element == 1) && j == 0) {
+            horChecker[i] = true;
+            if (kMap[i + 1].every((element) => element == 1)) {
+              horChecker[i + 1] = true;
+              output.add(simpleEq(
+                  inputs: [inpRow, inpCol],
+                  rows: [rowInputs[i], rowInputs[i + 1]]));
+            }
+            if (!horChecker[i - 1] && !horChecker[i + 1]) {
+              output.add(
+                  simpleEq(inputs: [inpRow, inpCol], rows: [rowInputs[i]]));
+            }
+          }
+          if (row[j] == 1) {
+            if (j == 0) {
+              if (kMap[i][0] == 1 &&
+                  kMap[i][1] == 1 &&
+                  kMap[i + 1][0] == 1 &&
+                  kMap[i + 1][1] == 1 &&
+                  (!vertChecker[0] || !vertChecker[1]) &&
+                  (!horChecker[i] || !horChecker[i + 1])) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    columns: [colInputs[0], colInputs[1]],
+                    rows: [rowInputs[i], rowInputs[i + 1]]));
+              }
+              if (kMap[i][0] == 1 &&
+                  kMap[i][1] == 1 &&
+                  (kMap[i + 1][0] != 1 || kMap[i + 1][1] != 1) &&
+                  !horChecker[0]) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    rows: [rowInputs[i]],
+                    columns: [colInputs[0], colInputs[1]]));
+              }
+              if (kMap[i][0] == 1 &&
+                  kMap[i + 1][0] == 1 &&
+                  kMap[i][3] == 1 &&
+                  kMap[i + 1][3] == 1 &&
+                  (!vertChecker[0] || !vertChecker[3]) &&
+                  (!horChecker[i] || !horChecker[i + 1])) {
+                print("ok");
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    rows: [rowInputs[i], rowInputs[i + 1]],
+                    columns: [colInputs[0], colInputs[3]]));
+              }
+              if (kMap[i][0] == 1 &&
+                  kMap[i + 1][0] == 1 &&
+                  (kMap[i][1] != 1 || kMap[i + 1][1] != 1) &&
+                  !vertChecker[0] &&
+                  (kMap[i][3] != 1 || kMap[i + 1][3] != 1)) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    rows: [rowInputs[i], rowInputs[i + 1]],
+                    columns: [colInputs[0]]));
+              }
+              if (kMap[i][0] == 1 &&
+                  kMap[i][3] == 1 &&
+                  !horChecker[i] &&
+                  (kMap[i + 1][0] != 1 || kMap[i + 1][3] != 1) &&
+                  (!vertChecker[0] || !vertChecker[3])) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    rows: [rowInputs[i]],
+                    columns: [colInputs[0], colInputs[3]]));
+              }
+            } else if (j == 1 || j == 2) {
+              if (kMap[i][j] == 1 &&
+                  kMap[i][j + 1] == 1 &&
+                  kMap[i + 1][j] == 1 &&
+                  kMap[i + 1][j + 1] == 1 &&
+                  (!horChecker[i] || !horChecker[i + 1]) &&
+                  (!vertChecker[j] || !vertChecker[j + 1])) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    columns: [colInputs[j], colInputs[j + 1]],
+                    rows: [rowInputs[i], rowInputs[i + 1]]));
+              }
+              if (kMap[i][j] == 1 &&
+                  kMap[i][j + 1] == 1 &&
+                  (kMap[i + 1][j] != 1 || kMap[i + 1][j + 1] != 1) &&
+                  !vertChecker[i] &&
+                  (kMap[i - 1][j] != 1 || kMap[i - 1][j + 1] != 1)) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    rows: [rowInputs[i]],
+                    columns: [colInputs[j], colInputs[j + 1]]));
+              }
+              if (kMap[i][j] == 1 &&
+                  kMap[i + 1][j] == 1 &&
+                  !vertChecker[j] &&
+                  (kMap[i][j + 1] != 1 || kMap[i + 1][j + 1] != 1) &&
+                  (!horChecker[i] || !horChecker[i + 1]) &&
+                  (kMap[i][j - 1] != 1 || kMap[i + 1][j - 1] != 1)) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    rows: [rowInputs[i], rowInputs[i + 1]],
+                    columns: [colInputs[j]]));
+              }
+            } else {
+              if (kMap[i][3] == 1 &&
+                  kMap[i + 1][3] == 1 &&
+                  !vertChecker[3] &&
+                  (!horChecker[i] || !horChecker[i + 1]) &&
+                  (kMap[i][2] != 1 ||
+                      kMap[i + 1][2] != 1 ||
+                      kMap[i + 1][3] != 1) &&
+                  (kMap[i][0] != 1 || kMap[i + 1][0] != 1)) {
+                output.add(simpleEq(
+                    inputs: [inpRow, inpCol],
+                    rows: [rowInputs[i], rowInputs[i + 1]],
+                    columns: [colInputs[3]]));
+              }
+            }
+          }
         } else {
-          for (int i = 0; i < commomColumn.length - 1; i++) {
-            List subColumn = commomColumn.toList().sublist(i, i + 2);
-            columns = [for (int j in subColumn) colInputs[i]];
-            output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
+          bool isFull = row.every((element) => element == 1);
+          if (isFull &&
+              !kMap[2].every((element) => element == 1) &&
+              !kMap[0].every((element) => element == 1) &&
+              j == 0) {
+            horChecker[3] = true;
+            output.add(simpleEq(inputs: inpRow, rows: [rowInputs[3]]));
+          } else if (!isFull && row[j] == 1 && j != 3) {
+            if (row[j + 1] == 1 &&
+                (kMap[2][j] != 1 || kMap[2][j + 1] != 1) &&
+                (kMap[0][j] != 1 || kMap[0][j + 1] != 1)) {
+              output.add(simpleEq(
+                  inputs: [inpRow, inpCol],
+                  rows: [rowInputs[3]],
+                  columns: [colInputs[j], colInputs[j + 1]]));
+            }
           }
         }
-      } else {
-        columns = [for (int i in commomColumn) colInputs[i]];
-        output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
-      }
-
-      columns = [for (int i in columnKeys) colInputs[i]];
-      if (commonRow.length > 2) {
-        if (commonRow.contains(0) && commonRow.contains(3)) {
-          List subRow = (commonRow.elementAt(1) == 2)
-              ? commonRow.toList().sublist(1, 3)
-              : commonRow.toList().sublist(0, 2);
-          rows = [for (int i in subRow) rowInputs[i]];
-          output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
-          output.add(simpleEq(
-              inputs: inps,
-              columns: columns,
-              rows: [rowInputs[0], rowInputs[3]]));
-        } else {
-          for (int i = 0; i < commonRow.length - 1; i++) {
-            List subRow = commonRow.toList().sublist(i, i + 2);
-            rows = [for (int i in subRow) rowInputs[i]];
-            output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
-          }
-        }
-      } else {
-        rows = [for (int i in commonRow) rowInputs[i]];
-        output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
-      }
-    } else if (rowKeys.length >= rowInputs.length &&
-        colInputs.length > 2 &&
-        columnKeys.length < colInputs.length) {
-      rows = [for (int i in rowKeys) rowInputs[i]];
-      columns = [for (int i in commomColumn) colInputs[i]];
-      output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
-
-      if (commonRow.length == 1){
-        if (commonRow.contains(0) && columnKeys.contains(3)){
-          
-        }
-      }
-      rows = [for (int i in commonRow) rowInputs[i]];
-      if (columnKeys.length > 2 && commonRow.length == columnKeys.length) {
-        columns = [
-          for (int i = 0; i < columnKeys.length - 1; i++)
-            colInputs[columnKeys[i]]
-        ];
-      } else {
-        columns = [for (int i in columnKeys) colInputs[i]];
-      }
-      output.add(simpleEq(inputs: inps, columns: columns, rows: rows));
-    } else if (rowKeys.length < rowInputs.length &&
-        colInputs.length > 2 &&
-        columnKeys.length >= colInputs.length) {
-      columns = [for (int i in columnKeys) colInputs[i]];
-      if (rowKeys.length <= 2 && commomColumn.length >= colInputs.length) {
-        if (!rowKeys.contains(0) && !rowKeys.contains(3)) {
-          int next = rowKeys[0] + 1;
-          if (rowKeys[1] == next) {
-            rows = [for (int i in rowKeys) rowInputs[i]];
-            output.add(simpleEq(inputs: inps[0], rows: rows));
-          } else {
-            rowKeys.forEach((row) {
-              output.add(simpleEq(inputs: inps[0], rows: [rowInputs[row]]));
-            });
-          }
-        } else {
-          rows = [rowInputs[0], rowInputs[3]];
-          output.add(simpleEq(inputs: inps[0], rows: rows));
-        }
-      } else if (rowKeys.length <= 2 && commomColumn.length < colInputs.length){
-        
       }
     }
   }
 
-  output = output.toSet().toList();
-
-  return (output.length > 1) ? output.join("+") : output.join("");
-}
-
-List<List> _kMapColumn(List<List> kMap) {
-  List<List> output = [];
-  for (int j = 0; j < kMap[0].length; j++) {
-    List row = [];
-    for (int i = 0; i < kMap.length; i++) {
-      row.add(kMap[i][j]);
-    }
-    output.add(row);
-  }
-  return output;
-}
-
-Map _trueVars(List binInputs, List<List> kMap) {
-  int onesRow = 0;
-  Map<int, Set> onVars = {};
-
-  binInputs.asMap().forEach((id, value) {
-    var rowMap = kMap[id];
-    bool hasOne = rowMap.any((number) => number == TRUEBIN);
-    bool allOne = rowMap.every((number) => number == TRUEBIN);
-
-    if (allOne) {
-      onesRow++;
-    }
-
-    if (hasOne) {
-      Set<int> cols = {};
-      rowMap.asMap().forEach((key, number) {
-        if (number == TRUEBIN) {
-          cols.add(key);
-        }
-      });
-      onVars[id] = cols;
-    }
-  });
-  if (onesRow >= binInputs.length) {
-    return {};
-  }
-
-  return onVars;
+  return (output.length == 1) ? output.join("") : output.join("+");
 }
