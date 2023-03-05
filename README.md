@@ -459,9 +459,9 @@ O **Mapa de Karnaugh** (**Mapa K**) é um método gráfico utilizado para simpli
 
 Estarei disponibilizando alguns links caso tenha interesse em aprofundar sobre o método de resolução de funções booleanas com o Mapa K, pois não estarei entrando em muito detalhes do passo a passo para não deixar o artigo muito grande.
 
-:link: [Material I](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://edisciplinas.usp.br/pluginfile.php/5217375/mod_resource/content/1/Aula%205%20-%20Mapas%20de%20Karnaugh.pdf)
+:link: [Mapa de Karnaugh – Aula 6.1 – ED](https://mundoprojetado.com.br/mapa-de-karnaugh-aula-6-1-ed/)
 
-:link: [Material II](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.inf.ufsc.br/~j.guntzel/isd/isd2.pdf)
+:link: [Mapa de Karnaugh de 3 e de 4 variáveis](http://algol.dcc.ufla.br/~giacomin/Com164/Karnaugh_3_4.html#:~:text=Um%20mapa%20de%20Karnaugh%20de%204%20vari%C3%A1veis%20%C3%A9%20obtido%20dividindo,%2CB%2CC%2CD.)
 
 :link: [Sistemas Digitais: Princípios e Aplicações](https://www.amazon.com.br/Sistemas-digitais-princ%C3%ADpios-aplica%C3%A7%C3%B5es-Ronald/dp/8576059223)
 
