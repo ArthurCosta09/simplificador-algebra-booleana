@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import "simple_eq.dart";
+import 'simpleEq.dart';
 
-String simplifier(
-    List kMap, List<String> inputs, List rowInputs, List colInputs) {
+String simplifier(List kMap, List<String> inputs, List<String> rowInputs,
+    List<String> colInputs) {
   if (kMap.isEmpty) {
     return "1";
   }
@@ -81,9 +81,9 @@ String simplifier(
           if (row[j] == 1) {
             if (kMap[0][j] == 1 &&
                 kMap[1][j] == 1 &&
-                kMap[2][j] != 1 &&
-                kMap[3][j] != 1 &&
-                !kMap[1].every((element) => element == 1)) {
+                (kMap[2][j] != 1 || kMap[3][j] != 1) &&
+                (!kMap[1].every((element) => element == 1) ||
+                    !kMap[0].every((element) => element == 1))) {
               output.add(simpleEq(
                   inputs: [inpRow, inpCol],
                   columns: [colInputs[j]],
@@ -166,8 +166,7 @@ String simplifier(
         vertChecker.add(false);
       }
     });
-    print(horChecker);
-    print(vertChecker);
+
     List<String> inpRow = inputs.sublist(0, 2);
     List<String> inpCol = inputs.sublist(2);
     for (int i = 0; i < rowInputs.length; i++) {
@@ -191,7 +190,6 @@ String simplifier(
           if (row[j] == 1) {
             if (j == 0) {
               if (vertChecker[j]) {
-                vertChecker[0] = true;
                 if (vertChecker[3]) {
                   output.add(simpleEq(
                       inputs: inpCol, columns: [colInputs[0], colInputs[3]]));
@@ -204,11 +202,10 @@ String simplifier(
                   output.add(simpleEq(inputs: inpCol, columns: [colInputs[0]]));
                 }
               }
-              if (kMap[1][j] == 1 && kMap[2][j] != 1 && kMap[3][j] != 1) {
+              if (kMap[1][j] == 1 && (kMap[2][j] != 1 || kMap[3][j] != 1)) {
                 if (kMap[0][3] == 1 &&
                     kMap[1][3] == 1 &&
-                    kMap[2][3] != 1 &&
-                    kMap[3][3] != 1 &&
+                    (kMap[2][3] != 1 || kMap[3][3] != 1) &&
                     (!horChecker[0] || !horChecker[1]) &&
                     (!vertChecker[0] || !vertChecker[3])) {
                   output.add(simpleEq(
@@ -218,7 +215,8 @@ String simplifier(
                 }
                 if ((!horChecker[0] || !horChecker[1]) &&
                     (kMap[0][3] != 1 || kMap[1][3] != 1) &&
-                    (kMap[0][1] != 1 || kMap[1][1] != 1)) {
+                    (kMap[0][1] != 1 || kMap[1][1] != 1) &&
+                    (!vertChecker[0] || !vertChecker[1] || !vertChecker[3])) {
                   output.add(simpleEq(
                       inputs: [inpRow, inpCol],
                       columns: [colInputs[0]],
@@ -229,7 +227,8 @@ String simplifier(
                   kMap[0][1] == 1 &&
                   kMap[1][0] == 1 &&
                   kMap[1][1] == 1 &&
-                  (!horChecker[0] || !horChecker[1])) {
+                  (!horChecker[0] || !horChecker[1]) &&
+                  (!vertChecker[0] || !vertChecker[1])) {
                 output.add(simpleEq(
                     inputs: [inpRow, inpCol],
                     columns: [colInputs[0], colInputs[1]],
@@ -238,7 +237,8 @@ String simplifier(
               if (kMap[0][0] == 1 &&
                   kMap[3][0] == 1 &&
                   !vertChecker[0] &&
-                  (!horChecker[0] || !horChecker[3])) {
+                  (!horChecker[0] || !horChecker[3]) &&
+                  (kMap[0][1] != 1 || kMap[3][1] != 1)) {
                 output.add(simpleEq(
                     inputs: [inpRow, inpCol],
                     columns: [colInputs[0]],
@@ -277,17 +277,8 @@ String simplifier(
                     rows: [rowInputs[0], rowInputs[1]]));
               }
             } else if (j == 1 || j == 2) {
-              if (kMap[0][j] == 1 &&
-                  kMap[1][j] == 1 &&
-                  kMap[2][j] == 1 &&
-                  kMap[3][j] == 1) {
-                vertChecker[j] = true;
-                if (kMap[0][j + 1] == 1 &&
-                    kMap[1][j + 1] == 1 &&
-                    kMap[2][j + 1] == 1 &&
-                    kMap[3][j + 1] == 1) {
-                  vertChecker[j + 1] =
-                      (vertChecker[j + 1]) ? vertChecker[j + 1] : true;
+              if (vertChecker[j]) {
+                if (vertChecker[j + 1]) {
                   output.add(simpleEq(
                       inputs: inpCol,
                       columns: [colInputs[j], colInputs[j + 1]]));
@@ -320,10 +311,10 @@ String simplifier(
               }
               if (kMap[0][j] == 1 &&
                   kMap[0][j + 1] == 1 &&
-                  kMap[1][j] != 1 &&
-                  kMap[1][j + 1] != 1 &&
-                  kMap[3][j] != 1 &&
-                  kMap[3][j + 1] != 1 &&
+                  (kMap[1][j] != 1 ||
+                      kMap[1][j + 1] != 1 ||
+                      kMap[3][j] != 1 ||
+                      kMap[3][j + 1] != 1) &&
                   !horChecker[0] &&
                   (!vertChecker[j] || !vertChecker[j + 1])) {
                 output.add(simpleEq(
@@ -383,17 +374,13 @@ String simplifier(
             }
           }
         } else if (i == 1 || i == 2) {
-          if (row.every((element) => element == 1) && j == 0) {
-            horChecker[i] = true;
-            if (kMap[i + 1].every((element) => element == 1)) {
-              horChecker[i + 1] = true;
+          if (horChecker[i] && j == 0) {
+            if (horChecker[i + 1]) {
               output.add(simpleEq(
-                  inputs: [inpRow, inpCol],
-                  rows: [rowInputs[i], rowInputs[i + 1]]));
+                  inputs: inpRow, rows: [rowInputs[i], rowInputs[i + 1]]));
             }
             if (!horChecker[i - 1] && !horChecker[i + 1]) {
-              output.add(
-                  simpleEq(inputs: [inpRow, inpCol], rows: [rowInputs[i]]));
+              output.add(simpleEq(inputs: inpRow, rows: [rowInputs[i]]));
             }
           }
           if (row[j] == 1) {
@@ -412,7 +399,8 @@ String simplifier(
               if (kMap[i][0] == 1 &&
                   kMap[i][1] == 1 &&
                   (kMap[i + 1][0] != 1 || kMap[i + 1][1] != 1) &&
-                  !horChecker[0]) {
+                  (kMap[i - 1][0] != 1 || kMap[i - 1][1] != 1) &&
+                  !horChecker[i]) {
                 output.add(simpleEq(
                     inputs: [inpRow, inpCol],
                     rows: [rowInputs[i]],
@@ -424,7 +412,6 @@ String simplifier(
                   kMap[i + 1][3] == 1 &&
                   (!vertChecker[0] || !vertChecker[3]) &&
                   (!horChecker[i] || !horChecker[i + 1])) {
-                print("ok");
                 output.add(simpleEq(
                     inputs: [inpRow, inpCol],
                     rows: [rowInputs[i], rowInputs[i + 1]],
@@ -433,8 +420,9 @@ String simplifier(
               if (kMap[i][0] == 1 &&
                   kMap[i + 1][0] == 1 &&
                   (kMap[i][1] != 1 || kMap[i + 1][1] != 1) &&
-                  !vertChecker[0] &&
-                  (kMap[i][3] != 1 || kMap[i + 1][3] != 1)) {
+                  (!vertChecker[0] || !vertChecker[3]) &&
+                  (kMap[i][3] != 1 || kMap[i + 1][3] != 1) &&
+                  (!horChecker[i] || !horChecker[i + 1])) {
                 output.add(simpleEq(
                     inputs: [inpRow, inpCol],
                     rows: [rowInputs[i], rowInputs[i + 1]],
@@ -442,8 +430,11 @@ String simplifier(
               }
               if (kMap[i][0] == 1 &&
                   kMap[i][3] == 1 &&
-                  !horChecker[i] &&
+                  (!horChecker[i] ||
+                      !horChecker[i + 1] ||
+                      !horChecker[i - 1]) &&
                   (kMap[i + 1][0] != 1 || kMap[i + 1][3] != 1) &&
+                  (kMap[i - 1][0] != 1 || kMap[i - 1][3] != 1) &&
                   (!vertChecker[0] || !vertChecker[3])) {
                 output.add(simpleEq(
                     inputs: [inpRow, inpCol],
@@ -465,7 +456,8 @@ String simplifier(
               if (kMap[i][j] == 1 &&
                   kMap[i][j + 1] == 1 &&
                   (kMap[i + 1][j] != 1 || kMap[i + 1][j + 1] != 1) &&
-                  !vertChecker[i] &&
+                  !horChecker[i] &&
+                  (!vertChecker[j] || !vertChecker[j + 1]) &&
                   (kMap[i - 1][j] != 1 || kMap[i - 1][j + 1] != 1)) {
                 output.add(simpleEq(
                     inputs: [inpRow, inpCol],
@@ -476,7 +468,6 @@ String simplifier(
                   kMap[i + 1][j] == 1 &&
                   !vertChecker[j] &&
                   (kMap[i][j + 1] != 1 || kMap[i + 1][j + 1] != 1) &&
-                  (!horChecker[i] || !horChecker[i + 1]) &&
                   (kMap[i][j - 1] != 1 || kMap[i + 1][j - 1] != 1)) {
                 output.add(simpleEq(
                     inputs: [inpRow, inpCol],
@@ -488,9 +479,7 @@ String simplifier(
                   kMap[i + 1][3] == 1 &&
                   !vertChecker[3] &&
                   (!horChecker[i] || !horChecker[i + 1]) &&
-                  (kMap[i][2] != 1 ||
-                      kMap[i + 1][2] != 1 ||
-                      kMap[i + 1][3] != 1) &&
+                  (kMap[i][2] != 1 || kMap[i + 1][2] != 1) &&
                   (kMap[i][0] != 1 || kMap[i + 1][0] != 1)) {
                 output.add(simpleEq(
                     inputs: [inpRow, inpCol],
@@ -505,7 +494,6 @@ String simplifier(
               !kMap[2].every((element) => element == 1) &&
               !kMap[0].every((element) => element == 1) &&
               j == 0) {
-            horChecker[3] = true;
             output.add(simpleEq(inputs: inpRow, rows: [rowInputs[3]]));
           } else if (!isFull && row[j] == 1 && j != 3) {
             if (row[j + 1] == 1 &&

@@ -9,7 +9,7 @@ class BooleanCalculator extends StatefulWidget {
 }
 
 class _BooleanCalculatorState extends State<BooleanCalculator> {
-  var _resultText = "";
+  Padding _result = const Padding(padding: EdgeInsets.only(top: 20.0, left: 120.0));
   final _equation = TextEditingController();
 
   @override
@@ -60,7 +60,10 @@ class _BooleanCalculatorState extends State<BooleanCalculator> {
                 padding: EdgeInsets.fromLTRB(10, 25.0, 0, 0),
                 child: ElevatedButton(
                     onPressed: () {
-                      checker(context, _equation.text.replaceAll(" ", ""));
+                      setState(() {
+                        _result = checker(
+                            context, _equation.text.replaceAll(" ", ""));
+                      });
                     },
                     child: const Text("Efetuar Operação",
                         style: TextStyle(fontSize: 20, color: Colors.white54)),
@@ -80,11 +83,7 @@ class _BooleanCalculatorState extends State<BooleanCalculator> {
                       borderRadius: BorderRadius.circular(10.0)),
                   child: Padding(
                       padding: EdgeInsets.fromLTRB(0, 22, 0, 0),
-                      child: Text(_resultText,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold))),
+                      child: _result),
                 )),
             Padding(
               padding: EdgeInsets.fromLTRB(0, 53, 0, 0),

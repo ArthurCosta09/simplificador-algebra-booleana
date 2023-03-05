@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:sortedmap/sortedmap.dart';
-import "tab_verdade.dart";
-import "mapa_karnaugh.dart";
+import 'tabVerdade.dart';
+import 'mapaKarnaugh.dart';
 import 'simplifier.dart';
+import 'equationWriter.dart';
 
 final operadores = ["+", "*", "!"];
 
-void calculo(String equacao) {
+Padding calculo(String equacao) {
   var eqList = equacao.split("");
 
   Map<String, int> inputs = SortedMap(const Ordering.byKey());
@@ -18,16 +19,13 @@ void calculo(String equacao) {
   });
 
   List<String> inps = inputs.keys.toList();
-  print(inps.length);
 
   Map tabVerdade = tabelaVerdade(equacao, inputs);
-  print(tabVerdade);
 
   List mapaKPack = kMap(tabVerdade, inputs);
   List mapaK = mapaKPack[0];
-  List rowInputs = mapaKPack[1];
-  List colInputs = mapaKPack[2];
+  List<String> rowInputs = mapaKPack[1];
+  List<String> colInputs = mapaKPack[2];
 
-  print(mapaK);
-  print(simplifier(mapaK, inps, rowInputs, colInputs));
+  return resultEquation(simplifier(mapaK, inps, rowInputs, colInputs));
 }

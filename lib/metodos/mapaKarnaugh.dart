@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import "dart:math";
-import "kMap_pos.dart";
+import 'kMapPos.dart';
 
 List kMap(Map truthTable, Map inputs) {
   List kMap = [];
