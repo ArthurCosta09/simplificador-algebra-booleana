@@ -2,6 +2,18 @@
 
 <br/>
 
+## **_Sumário_**
+
+> - [Introdução](#introdução)
+> - [Portas lógicas](#portas-lógicas)
+> - [Algebra Booleana](#álgebra-booleana)
+> - [Mapa de Karnaugh](#mapa-de-karnaugh)
+> - [Sobre o projeto](#sobre-o-projeto)
+> - [Desenvolvimento](#desenvolvimento)
+> - [Referências](#referências)
+
+---
+
 ## **_Introdução_**
 
 A eletrônica digital é a área que utiliza dois pulsos representados por 1 e 0. Comandos como if-else, for loop e while loop são provenientes da eletrônica digital.
